@@ -21,10 +21,22 @@ const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 let lastMessage = '';
 
-const saudacoes = ['ola', 'oi', 'e ai', 'bom dia', 'boa tarde', 'boa noite', 'opa', 'eai', 'eae', 'Olá'];
-const perguntas = ['tudo bem?', 'tudo bom?', 'como você ta?'];
+const saudacoes = [
+    'ola', 'oi', 'e ai', 'bom dia', 'boa tarde', 'boa noite', 'opa', 'eai', 'eae',
+    'Olá', 'Opa', 'Bom dia', 'Boa tarde', 'Boa noite', 
+    'OLA', 'OI', 'E AI', 'BOM DIA', 'BOA TARDE', 'BOA NOITE', 'OPA', 'EAI', 'EAE',
+    'oLa', 'Oi', 'E aI', 'BoA taRde', 'Boa NOite', 'EaI', 'EaE'
+];
 
-
+  
+  const perguntas = [
+    'tudo bem?', 'tudo bom?', 'como você tá?', 'tá tudo bem?', 'tá tudo bom?', 'como está você?', 'está tudo bem?',
+    'TUDO BEM?', 'TUDO BOM?', 'COMO VOCÊ TÁ?', 'TÁ TUDO BEM?', 'TÁ TUDO BOM?', 'COMO ESTÁ VOCÊ?', 'ESTÁ TUDO BEM?',
+    'Tudo bem?', 'Tudo bom?', 'Como você tá?', 'Tá tudo bem?', 'Tá tudo bom?', 'Como está você?', 'Está tudo bem?',
+    'tUdO bEm?', 'tUdO bOm?', 'cOmO vOcÊ tÁ?', 'tÁ tUdO bEm?', 'tÁ tUdO bOm?', 'cOmO eStÁ vOcÊ?', 'eStÁ tUdO bEm?',
+    'Tudo Bem?', 'Tudo Bom?', 'Como Você Tá?', 'Tá Tudo Bem?', 'Tá Tudo Bom?', 'Como Está Você?', 'Está Tudo Bem?'
+  ];
+  
 async function sendSplitMessage(channel, message) {
     while (message.length > 0) {
        
@@ -35,16 +47,17 @@ async function sendSplitMessage(channel, message) {
 }
 
 const actions = {
-    saudacoes: () => 'Ola! , prazer Codi Help, como posso te ajudar hoje?',
-    'mini mapa de softskils': () => ({ text: 'Aqui esta seu mini-mapa de softskils!', files: ['./mapas/mapaSt.pdf'] }),
-    'mini mapa de ingles': () => ({ text: 'Aqui esta seu mini-mapa de inglês!', files: ['./mapas/mapaIn.pdf'] }),
-    'mini mapa de programação': () => ({ text: 'Aqui esta seu mini-mapa de programação!', files: ['./mapas/mapaPg.pdf'] }),
-    'cronograma': () => ({ text: 'Aqui está o nosso crongrama!', files: ['./cronogramas/cronograma.pdf'] }),
-    'arremate': () => ({ text: 'Aqui está o link de todos os arremates:https://classroom.google.com/c/NjUwOTIxNjM3MDIx/m/NjUzNDI2MDYyNTYz/details' }),
-    'justificar': () => ({ text: 'Justifique aqui a sua falta!, https://docs.google.com/forms/d/e/1FAIpQLSflcGYDbsk38oDfYteGEnm8aKzUw8c14jYbFpSIXvQu0eA3Lw/viewform' }),
-    'ajuda': () => 'Vi que você pediu uma ajuda!, sou capaz de fazer de tudo para te ajudar a se guiar neste curso!, precisa do mini-mapa de programação basta escrever mini-mapa seguido pelo nome da matéria!, quer o cronograma?, basta escrever cronograma, precisa justificar sua falta?, escreva justificativa em sua frase, quer os deveres escreva arremate ',
-    perguntas: () => 'Estou ótimo!, e você?, mas devo resaltar que maquinas não sentem nada viu! -_-'
+    saudacoes: () => 'Olá! Prazer, Codi Help. Como posso te ajudar hoje?',
+    'mini mapa de softskills': () => ({ text: 'Aqui está o seu mini-mapa de habilidades sociais!', files: ['./mapas/mapaSt.pdf'] }),
+    'mini mapa de inglês': () => ({ text: 'Aqui está o seu mini-mapa de inglês!', files: ['./mapas/mapaIn.pdf'] }),
+    'mini mapa de programação': () => ({ text: 'Aqui está o seu mini-mapa de programação!', files: ['./mapas/mapaPg.pdf'] }),
+    'cronograma': () => ({ text: 'Aqui está o nosso cronograma!', files: ['./cronogramas/cronograma.pdf'] }),
+    'arremate': () => ({ text: 'Aqui está o link de todos os arremates: https://classroom.google.com/c/NjUwOTIxNjM3MDIx/m/NjUzNDI2MDYyNTYz/details' }),
+    'justificar': () => ({ text: 'Justifique aqui a sua falta: https://docs.google.com/forms/d/e/1FAIpQLSflcGYDbsk38oDfYteGEnm8aKzUw8c14jYbFpSIXvQu0eA3Lw/viewform' }),
+    'ajuda': () => 'Vi que você pediu uma ajuda! Sou capaz de fazer de tudo para te ajudar a se guiar neste curso! Precisa do mini-mapa de programação? Basta escrever "mini-mapa" seguido pelo nome da matéria! Quer o cronograma? Basta escrever "cronograma"! Precisa justificar sua falta? Escreva "justificar" em sua frase. Quer os deveres? Escreva "arremate".',
+    perguntas: () => 'Estou ótimo! E você? Mas devo ressaltar que máquinas não sentem nada, viu! -_-'
 };
+
 
 async function sendMessageToGemini(message) {
     try {
@@ -58,7 +71,7 @@ async function sendMessageToGemini(message) {
         return response;
     } catch (error) {
         console.error('Erro ao enviar mensagem para o Gemini:', error);
-        return 'Desculpe, o Gemini atingiu o  limite de 1999 caracteres na resposta,Por favor resuma mais sua respsota';
+        return 'Desculpe, o Gemini atingiu o limite de 1999 caracteres na resposta. Por favor, resuma mais sua resposta.';
     }
 }
 
@@ -100,7 +113,7 @@ async function handleDiscordMessage(message) {
         }
     }
     if (!foundAction) {
-        message.channel.send('Não entendi muito bem, poderia repetir? Se precisar de ajuda com coisas da PDA, digite "ajuda" ou espere até  que o  Gemini responda!.');
+        message.channel.send('Não entendi muito bem. Poderia repetir? Se precisar de ajuda com coisas da PDA, digite "ajuda" ou aguarde até que o Gemini responda!');
     }
 
     lastMessage = content; // atualizar o contexto antes de enviar a próxima solicitação
