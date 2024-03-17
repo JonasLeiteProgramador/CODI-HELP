@@ -143,11 +143,7 @@ async function handleDiscordMessage(message) {
     // caso o bot não encontre nenhuma das palavras chaves na mensagem  do usuário ele envia uma mensagem no canal do discord
     // avisando que é o gemini que vai responder 
     if (!foundAction) {
-<<<<<<< HEAD
         message.channel.send('O Gemini ja irá responder!,Caso necessite de ajuda com coisas da PDA, digite "ajuda" ');
-=======
-        message.channel.send('Não entendi muito bem. Poderia repetir? Se precisar de ajuda com coisas da PDA, digite "ajuda" ou aguarde até que o Gemini responda!');
->>>>>>> 68415fa7c1d948d8c93cdd5ef9753cbcaf8b0f17
     }
 
     lastMessage = content; // atualizar o contexto antes de enviar a próxima solicitação
