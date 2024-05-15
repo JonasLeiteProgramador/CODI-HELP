@@ -1,4 +1,11 @@
-import { Client, IntentsBitField, MessageCollector } from "discord.js";
+import pkg from "discord.js";
+const {
+  Client,
+  IntentsBitField,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+} = pkg;
 import dotenv from 'dotenv';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -28,6 +35,7 @@ const saudacoes = [
     'oLa', 'Oi', 'E aI', 'BoA taRde', 'Boa NOite', 'EaI', 'EaE'
 ];
 
+let currentBot = 'pda'
   
   const perguntas = [
     'tudo bem?', 'tudo bom?', 'como você tá?', 'tá tudo bem?', 'tá tudo bom?', 'como está você?', 'está tudo bem?',
@@ -51,6 +59,15 @@ const actions = {
 }
 
 
+
+
+
+
+
+
+
+
+
 // Função para enviar uma mensagem dividida em partes menores para evitar exceder o limite de caracteres.
 async function sendSplitMessage(channel, message) {
     // Enquanto houver caracteres na mensagem para enviar:
@@ -67,29 +84,33 @@ async function sendSplitMessage(channel, message) {
 // Função para enviar uma mensagem para o Gemini (supondo que seja um serviço externo).
 async function sendMessageToGemini(message) {
     try {
-        // Verifica se a mensagem excede o limite de caracteres permitido.
-        if (message.length > 2000) {
-            throw new Error('Limite de caracteres excedido.');
-        }
+        if (message.author.bot) return;
+        const content = message.content.toLowerCase();
+        console.log(content)
 
-        // Gera o conteúdo da mensagem usando um modelo/modelo externo.
-        const result = await model.generateContent(message);
-        // Extrai a resposta do modelo, limitando-a a 2000 caracteres.
-        const response = result.response.text().substring(0, 2000);
+        
+      // Verifica se a mensagem excede o limite de caracteres permitido.
+      if (content.length > 2000) {
+        throw new Error("Limite de caracteres excedido.");
+      }
+   
+      // Gera o conteúdo da mensagem usando um modelo/modelo externo.
+      const result = await model.generateContent(content);
 
-        return response; // Retorna a resposta gerada.
+      // Extrai a resposta do modelo, limitando-a a 2000 caracteres.
+      const response = result.response.text().substring(0, 2000);
+      return message.channel.send(response);   // Retorna a resposta gerada.
     } catch (error) {
-        // Em caso de erro, registra o erro no console.
-        console.error('Erro ao enviar mensagem para o Gemini:', error);
-        // Retorna uma mensagem padrão em caso de erro.
-        return 'Desculpe, o Gemini por algum motivo não conseguiu responder sua pergunta. Por favor, poderia reformulá-la?.';
+      // Em caso de erro, registra o erro no console.
+      console.error("Erro ao enviar mensagem para o Gemini:", error);
+      // Retorna uma mensagem padrão em caso de erro.
+      return "Desculpe, o Gemini por algum motivo não conseguiu responder sua pergunta. Por favor, poderia reformulá-la?.";
     }
-}
+  }
 
 async function handleDiscordMessage(message) {
     // Verifica se o autor da mensagem é um bot, e se for, retorna sem fazer nada.
-    if (message.author.bot) return;
-
+   
     // Converte o conteúdo da mensagem para minúsculas para facilitar a comparação.
     const content = message.content.toLowerCase();
 
@@ -102,7 +123,6 @@ async function handleDiscordMessage(message) {
     }
 
     // Variável para controlar se uma ação foi encontrada ou não.
-    let foundAction = false;
 
     // Percorre as chaves (palavras-chave) no objeto de ações.
     for (const keyword in actions) {
@@ -112,7 +132,6 @@ async function handleDiscordMessage(message) {
                 // Se contiver, chama a função correspondente e envia a resposta para o canal.
                 const response = actions[keyword]();
                 message.channel.send(response);
-                foundAction = true;
                 return; //Sai do loop, pois uma ação foi encontrada isso evita que o gemini responda.
             }
         } else if (keyword === 'perguntas') {
@@ -121,7 +140,6 @@ async function handleDiscordMessage(message) {
                 // Se contiver, chama a função correspondente e envia a resposta para o canal.
                 const response = actions[keyword]();
                 message.channel.send(response);
-                foundAction = true;
                 return; // Sai do loop, pois uma ação foi encontrada isso evita que o gemini responda.
             }
         } else if (content.includes(keyword)) {
@@ -132,42 +150,73 @@ async function handleDiscordMessage(message) {
             // Se houver arquivos a serem enviados na resposta, envia-os para o canal.
             if (response.files)
                 message.channel.send(response);
-            foundAction = true;
             return; // Sai do loop, pois uma ação foi encontrada.
         }
     }
+    
+   
 
-    // Se nenhuma ação correspondente foi encontrada, foundAction permanece false.
-
-
-    // caso o bot não encontre nenhuma das palavras chaves na mensagem  do usuário ele envia uma mensagem no canal do discord
-    // avisando que é o gemini que vai responder 
-    if (!foundAction) {
-        message.channel.send('O Gemini ja irá responder!,Caso necessite de ajuda com coisas da PDA, digite "ajuda" ');
-    }
-
-    lastMessage = content; // atualizar o contexto antes de enviar a próxima solicitação
-
-    const geminiResponse = await sendMessageToGemini(content);
-    lastMessage += ` ${geminiResponse}`; // adicionar a resposta do Gemini ao contexto
-    // aqui estamos dividindo a mensagem em partes caso a mensagem  em partes caso execeda o limite de caracteres
-    if (geminiResponse.length > 2000) {
-        await sendSplitMessage(message.channel, geminiResponse);
-    } else {
-        message.channel.send(geminiResponse);
-    }
+   
+   
 }
+
+client.on("messageCreate", async (message) => {
+    if (message.author.bot) return;
+  
+    // Cria o botão de alternância
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("toggle")
+        .setLabel("Alternar Bot")
+        .setStyle(ButtonStyle.Danger)
+    );
+  
+    // Envia basicamente uma mensagem com o botão de alternância
+    await message.channel.send({
+      content: `você esta utilizando o  bot ${currentBot}  Clique para alternar caso desejar.`,
+      components: [row],
+    });
+    if(currentBot === 'pda'){
+        await handleDiscordMessage(message)
+    }else{
+       await sendMessageToGemini(message)
+    }
+  });
+  
+  client.on("interactionCreate", async (interaction) => {
+    if (!interaction.isButton()) return;
+  
+    if (interaction.customId === "toggle") {
+      // basicamente alterna entre 'gemini' e 'pda'
+      currentBot = currentBot === "gemini" ? "pda" : "gemini";
+  
+      // aqui ele atualiza a mensagem para refletir o estado atual
+      await interaction.update({
+        content: `Bot alterado para: ${currentBot}`,
+        components: [],
+      });
+
+
+      const lastMessage = interaction.channel.messages.cache.last();
+      if (currentBot === "gemini") {
+          interaction.channel.send("Olá eu sou o gemini no que posso te ajudar?")
+          await sendMessageToGemini(lastMessage)
+    
+      } else {
+        interaction.channel.send(
+          "Olá eu sou o CodiHelp e será um prazer te ajudar em coisas da PDA no que posso te ajudar?"
+        );
+         await handleDiscordMessage(lastMessage)        
+      }
+    }
+  });
 
 // colocamos o bot online e exibimos uma mensagem para indicar isso
 client.on('ready', () => {
     console.log(`${client.user.tag} está online!`);
 });
 
-// aqui estamos fazendo com que o bot não responda as pŕoprias mensagens
-client.on('messageCreate', async message => {
-    if (message.author.bot) return;
-    await handleDiscordMessage(message);
-});
+
 
 
 client.login(process.env.TOKEN);
